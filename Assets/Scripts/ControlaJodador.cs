@@ -1,12 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 public class ControlaJogador : MonoBehaviour {
-Vector3 direcao;
+    Vector3 direcao;
 
     public float Velocidade = 10;
+    public LayerMask MascaraChao;
+
+    public GameObject TextoGameOver;
+    public bool Vivo = true;
+
+    private void Start()
+    {
+        Time.timeScale = 1;
+    }
 
     // Update is called once per frame
     void Update () {
@@ -26,12 +36,37 @@ Vector3 direcao;
             GetComponent<Animator>().SetBool("Movendo", false);
         }
 
+        if(Vivo == false) 
+        {
+            if(Input.GetButtonDown("Fire1"))
+            {
+                SceneManager.LoadScene("game");
+            }
+        }
+
     }
 
-    void FixedUpdate() {
+    void FixedUpdate()
+    {
+        GetComponent<Rigidbody>().MovePosition
+            (GetComponent<Rigidbody>().position +
+            (direcao * Velocidade * Time.deltaTime));
 
-        GetComponent<Rigidbody>().MovePosition(GetComponent<Rigidbody>().position + (direcao * Velocidade * Time.deltaTime));
+        Ray raio = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(raio.origin, raio.direction * 100, Color.red);
 
+        RaycastHit impacto;
+
+        if(Physics.Raycast(raio, out impacto, 100, MascaraChao))
+        {
+            Vector3 posicaoMiraJogador = impacto.point - transform.position;
+
+            posicaoMiraJogador.y = transform.position.y;
+
+            Quaternion novaRotacao = Quaternion.LookRotation(posicaoMiraJogador);
+            GetComponent<Rigidbody>().MoveRotation(novaRotacao);
+        }
     }
 
+    
 }
